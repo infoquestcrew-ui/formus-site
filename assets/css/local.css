@@ -1,0 +1,48 @@
+/* Local behavior and accessibility additions; the reference styles stay intact. */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #dc4162;
+  outline-offset: 5px;
+}
+
+.form-notice,
+.form-status {
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.form-notice {
+  margin: 32px 0 16px;
+  color: #666;
+  text-align: center;
+}
+
+.form-status:empty {
+  display: none;
+}
+
+.form-status.is-visible {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid #e1d7da;
+  border-radius: 4px;
+  background: #fff6f8;
+  color: #282328;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  .load_fist {
+    display: none !important;
+  }
+}
+
+/* Use the native select arrow in place of the source site's missing SVG. */
+select { background-image: none; appearance: auto; }
