@@ -14,10 +14,11 @@ ROOT = Path(__file__).resolve().parents[1]
 DOWNLOADS = ROOT / 'downloads'
 
 
-def archive_site(directory, target):
+def archive_site(directory, target, relative_paths=None):
     # Stable timestamps make an unchanged package byte-for-byte reproducible.
     with zipfile.ZipFile(target, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
-        for source in sorted(directory.rglob('*')):
+        sources = (directory / path for path in relative_paths) if relative_paths is not None else directory.rglob('*')
+        for source in sorted(sources):
             if source.is_file():
                 info = zipfile.ZipInfo(source.relative_to(directory).as_posix(), (2024, 1, 1, 0, 0, 0))
                 info.compress_type = zipfile.ZIP_DEFLATED
@@ -45,14 +46,13 @@ def main():
         contact = contact.replace("form-action 'none'", "form-action 'self'")
         contact = contact.replace('assets/js/contact.js?v=5', 'assets/js/contact-live.js?v=xserver-1')
         contact = contact.replace('<form id="contact-form"', '<form action="contact-submit.php" method="post" id="contact-form"')
-        contact = contact.replace('<p id="form-notice" class="form-notice">このページはデザイン確認用です。入力内容は送信されません。</p>', '<p id="form-notice" class="form-notice">フォームがご利用になれない場合は、<a href="mailto:info@formus.jp">info@formus.jp</a>へメールでご連絡ください。</p>')
+        contact = contact.replace(' aria-describedby="form-notice"', '')
+        contact = contact.replace('<p id="form-notice" class="form-notice">このページはデザイン確認用です。入力内容は送信されません。</p>', '')
         contact = contact.replace('<span>入力内容を確認する</span>', '<span>お問い合わせを送信する</span>')
         contact = contact.replace('入力確認にはJavaScriptが必要です。個人情報の取り扱いはページ下部でご確認いただけます。', 'フォームの送信にはJavaScriptを有効にしてください。メールでもinfo@formus.jpにご連絡いただけます。個人情報の取り扱いはページ下部でご確認いただけます。')
         contact = contact.replace('<p id="form-status"', '<input type="text" name="website" tabindex="-1" autocomplete="off" hidden aria-hidden="true">\n        <p id="form-status"')
         for field, limit in [(3, 200), (4, 100), (5, 100), (6, 254), (7, 50)]:
             contact = re.sub(rf'(<input id="contact-field-{field}"[^>]+)(>)', rf'\1 maxlength="{limit}"\2', contact)
-        if mode == 'preview':
-            contact = contact.replace('<p id="form-notice"', '<p class="form-notice">確認用ページです。送信するとinfo@formus.jpに実際にメールが届きます。</p>\n        <p id="form-notice"')
         (destination / 'contact.html').write_text(contact)
 
         if mode == 'public':
@@ -71,7 +71,9 @@ def main():
 ''')
         archive = DOWNLOADS / f'formus-xserver-{mode}.zip'
         archive_site(destination, archive)
-        outputs.append({'mode': mode, 'archive': str(archive), 'bytes': archive.stat().st_size, 'site_directory': str(destination)})
+        update = DOWNLOADS / f'formus-xserver-{mode}-contact-update.zip'
+        archive_site(destination, update, ['contact.html'])
+        outputs.append({'mode': mode, 'archive': str(archive), 'bytes': archive.stat().st_size, 'contact_update': str(update), 'site_directory': str(destination)})
     print(json.dumps(outputs, ensure_ascii=False, indent=2))
 
 

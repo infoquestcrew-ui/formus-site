@@ -17,6 +17,18 @@
 
 GitHub上の確認サイトはこれまで通り入力確認のみです。PHPによるメール送信はXserverに配置したファイルで動きます。
 
+### お問い合わせページの案内文2行だけを削除する場合
+
+確認用ページの「確認用ページです。送信すると…」と「フォームがご利用になれない場合は…」の2行を削除したファイルです。本番用ZIPからも同じ2行を削除しています。
+
+1. [確認用ページの差し替えZIP](https://infoquestcrew-ui.github.io/formus-site/downloads/formus-xserver-preview-contact-update.zip) をパソコンにダウンロードします。
+2. **パソコン上でZIPを展開**します。中には `contact.html` だけ入っています。
+3. Xserverのファイルマネージャで、現在のお問い合わせページがあるフォルダーを開きます。今回の設置先は `formus.jp/public_html/renewal-preview/formus-xserver-preview` です。
+4. **アップロード** から、ZIPの中の **`contact.html`** をアップロードし、同名ファイルを上書きします。ZIP自体をアップロードする必要はありません。
+5. [現在のお問い合わせページ](https://formus.jp/renewal-preview/formus-xserver-preview/contact.html) を再読み込みして確認します。
+
+メール送信に使うPHP・JavaScriptは変更していません。検索除外が入った確認用の差し替えファイルなので、本番の `public_html` 直下には使用しません。本番へは最新の本番用ZIPを使用してください。
+
 ## 2. 現在のサイトをバックアップ
 
 添付画像の画面から、左側の `formus.jp` を開きます。通常、その中に `public_html` フォルダーがあります。ここがサイトの公開先です。
