@@ -24,18 +24,18 @@ async def settle(page):
     await page.evaluate('Promise.all(document.getAnimations().filter(a => a.playState === "running" && a.effect.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => {})))')
     await page.evaluate('scrollTo({top:0,behavior:"instant"})')
     await page.wait_for_timeout(150)
-    # Freeze only the endless idle motion for sharp still images. This does not
-    # change the site's default state or its stop/resume button.
+    # Freeze the continuous text band only for a sharp still image.
     await page.evaluate('document.getAnimations().filter(a => a.effect.getComputedTiming().iterations === Infinity).forEach(a => a.pause())')
     # A full-page still shows the completed company mark, rather than its
     # off-screen starting pose. The motion recording uses the live scroll state.
-    await page.locator('.company').evaluate('''element => {
+    if await page.locator('.company').count():
+        await page.locator('.company').evaluate('''element => {
         for (const [key,value] of Object.entries({
             '--company-piece-gap':'0px', '--company-logo-draw':'0',
             '--company-logo-fill':'.9', '--company-logo-y':'0px',
             '--company-logo-turn':'0deg'
         })) element.style.setProperty(key,value);
-    }''')
+        }''')
 
 
 async def main(with_motion):
@@ -49,12 +49,13 @@ async def main(with_motion):
         page = await browser.new_page()
         for label, width, height in [('desktop', 1440, 1000), ('mobile', 390, 844)]:
             await page.set_viewport_size({'width': width, 'height': height})
-            await page.goto(BASE + '/', wait_until='networkidle')
-            await settle(page)
-            await page.screenshot(path=str(output / f'formus-top-{label}.jpg'), quality=88, full_page=True)
-            if label == 'desktop':
-                await page.screenshot(path=str(output / 'formus-top-hero.jpg'), quality=90)
-                await page.locator('.about').screenshot(path=str(output / 'formus-about-after.jpg'), quality=92)
+            for name, path in [('top', '/'), ('service', '/service/'), ('contact', '/contact.html')]:
+                await page.goto(BASE + path, wait_until='networkidle')
+                await settle(page)
+                await page.screenshot(path=str(output / f'formus-{name}-{label}.jpg'), quality=88, full_page=True)
+                if name == 'top' and label == 'desktop':
+                    await page.screenshot(path=str(output / 'formus-top-hero.jpg'), quality=90)
+                    await page.locator('.about').screenshot(path=str(output / 'formus-about-after.jpg'), quality=92)
 
         if with_motion:
             await page.set_viewport_size({'width': 1120, 'height': 760})
@@ -63,10 +64,6 @@ async def main(with_motion):
             await page.reload(wait_until='domcontentloaded')
             with tempfile.TemporaryDirectory(prefix='formus-motion-') as folder:
                 for frame in range(132):
-                    if frame == 24:
-                        await page.mouse.move(850, 300)
-                    if frame == 32:
-                        await page.mouse.move(290, 450)
                     if frame == 39:
                         await page.locator('.brand').hover()
                     if frame in (48, 77, 102):
@@ -79,6 +76,20 @@ async def main(with_motion):
                     '-framerate', '9', '-i', str(Path(folder) / 'frame-%03d.png'),
                     '-filter_complex', '[0:v]split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=3',
                     '-loop', '0', str(output / 'formus-motion-preview.gif'),
+                ], check=True)
+            # Record the actual continuous marquee at rest: no scrolling or
+            # pointer movement is needed to move the typography.
+            await page.locator('.tagline-marquee').scroll_into_view_if_needed()
+            await page.wait_for_timeout(500)
+            with tempfile.TemporaryDirectory(prefix='formus-marquee-') as folder:
+                for frame in range(60):
+                    await page.locator('.tagline-marquee').screenshot(path=str(Path(folder) / f'frame-{frame:03d}.png'))
+                    await page.wait_for_timeout(75)
+                subprocess.run([
+                    'ffmpeg', '-hide_banner', '-loglevel', 'error', '-y',
+                    '-framerate', '8', '-i', str(Path(folder) / 'frame-%03d.png'),
+                    '-filter_complex', '[0:v]split[a][b];[a]palettegen=max_colors=64[p];[b][p]paletteuse=dither=bayer:bayer_scale=3',
+                    '-loop', '0', str(output / 'formus-marquee-preview.gif'),
                 ], check=True)
         await browser.close()
     print(json.dumps({'output': str(output), 'motion_gif': with_motion}, ensure_ascii=False))

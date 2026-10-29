@@ -4,7 +4,8 @@
 
 現在の確認用ブランチ: `design-solvvy-refresh`
 
-このブランチではTOPの動画を削除し、Solvvyの実画面を参照して、大きな英字・ロゴ描画・見出しマスク・文字と写真のスクロール連動・浮く固定ヘッダーを実装しています。
+このブランチではTOPの動画を削除し、Solvvyの実画面を参照して、大きな英字・ロゴ描画・見出しマスク・文字と写真のスクロール連動・浮く固定ヘッダーを実装しています。サービス詳細とお問い合わせも同じデザインに刷新しています。
+英語の帯はスクロールせずに流れ続けます。NEWS・写真下の文言・右上の補足ラベル・独立した停止ボタンは削除し、Aboutの本文は一続きにしています。背面ロゴはマウスに追従しません。
 現在のリポジトリはユーザーの設定によりPublicです。確認用ブランチをPagesで公開し、mainは前回の状態を保持します。
 
 ## 1. 今回のファイルを開く
@@ -25,7 +26,7 @@ https://github.com/infoquestcrew-ui/formus-site/tree/design-solvvy-refresh
 3. 無料のVisual Studio Codeで、`index.html` が入っているフォルダーを開く。
 4. VS Codeの拡張機能から **Live Server** をインストールする。
 5. `index.html` を右クリックし、**Open with Live Server** を選ぶ。
-6. 開いたブラウザでページをスクロールして、各セクション、メニュー、お知らせ表示を確認する。
+6. 開いたブラウザで各セクション、流れる英語、メニューを確認し、事業内容とお問い合わせページも開く。
 
 Python 3が導入されているPCでは、フォルダー内で次を実行する方法も使えます。
 
@@ -51,7 +52,7 @@ OSやブラウザの「視差効果を減らす」「動きを減らす」が有
 
 現在のリポジトリはPublicなので、無料のGitHub Pagesを利用できます。
 
-現在のGitHub連携アプリでは、Pagesの初回作成APIが `Resource not accessible by integration` で拒否されています。最初の公開設定は、リポジトリ所有者がGitHubの画面から行ってください。サイトのコードは反映済みです。
+GitHub Pagesは設定済みです。公開元は `design-solvvy-refresh` ブランチの `/ (root)` で、このブランチの更新が自動反映されます。最初の設定をやり直す必要はありません。
 
 確認用サイトの設定は次のとおりです。
 
@@ -61,7 +62,11 @@ OSやブラウザの「視差効果を減らす」「動きを減らす」が有
 4. 設定を変更した場合は **Save** を押す。
 5. デプロイ完了後、同じ画面の **Visit site** を開く。
 
-公開URL: https://infoquestcrew-ui.github.io/formus-site/
+公開URL:
+
+- TOP: https://infoquestcrew-ui.github.io/formus-site/
+- 事業内容: https://infoquestcrew-ui.github.io/formus-site/service/
+- お問い合わせ: https://infoquestcrew-ui.github.io/formus-site/contact.html
 
 mainへのマージ後に、公開対象もmainに切り替えたい場合は、上記Branchを **main** に変更してSaveを押します。
 確認用ブランチの更新は、そのブランチをPagesの公開対象にしている間だけ自動反映されます。

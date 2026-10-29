@@ -39,19 +39,66 @@ matchMedia('(min-width: 761px)').addEventListener('change', event => {
 const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
 const header = document.querySelector('.site-header');
 const hero = document.querySelector('.hero');
-const revealTargets = [...document.querySelectorAll('.section-topline, .display-heading, .about-heading-ja, .about-image, .about-text p, .about-principles p, .section-heading-row > p, .service-row, .service-image, .company-table > div, .contact-grid p, .contact-action')];
+const revealTargets = [...document.querySelectorAll('.section-topline, .display-heading, .about-heading-ja, .about-image, .about-text p, .section-heading-row > p, .service-row, .service-image, .company-table > div, .contact-grid p, .contact-action, .page-title-row > p, .page-jump-links, .service-detail-copy, .service-detail-image, .contact-form-panel')];
 const marquee = document.querySelector('.tagline-marquee');
+const marqueeTrack = marquee?.querySelector('.marquee-track');
+const marqueeGroups = marqueeTrack ? [...marqueeTrack.children] : [];
+const marqueePhrase = marqueeGroups[0] ? [...marqueeGroups[0].childNodes].map(node => node.cloneNode(true)) : [];
+let marqueeAnimation;
+let marqueeDistance = 0;
+let marqueeDuration = 0;
+let marqueeResizeFrame = 0;
 const serviceImages = [...document.querySelectorAll('.service-image')];
 const company = document.querySelector('.company');
-const motionControl = document.querySelector('.motion-control');
 const sectionLinks = [...navigation.querySelectorAll('a[href^="#"]')];
 const motionAnimations = new Set();
-let pausedByUser = false;
-let pointerX = 0;
-let pointerY = 0;
+let marqueePaused = false;
 let observer;
 let scrollFrame = 0;
-const motionOff = () => motionPreference.matches || pausedByUser;
+const motionOff = () => motionPreference.matches;
+
+function syncMarquee() {
+  if (!marqueeTrack) return;
+  if (motionPreference.matches) {
+    marqueeAnimation?.cancel();
+    marqueeAnimation = undefined;
+    return;
+  }
+  // Each copy must cover the screen, including very wide viewports. Identical
+  // groups and a half-track translation make the loop boundary seamless.
+  const first = marqueeGroups[0];
+  first.replaceChildren(...marqueePhrase.map(node => node.cloneNode(true)));
+  const phraseWidth = first.getBoundingClientRect().width;
+  if (!phraseWidth) return;
+  const copies = Math.max(1, Math.ceil(marquee.clientWidth / phraseWidth));
+  for (let index = 1; index < copies; index++) {
+    first.append(...marqueePhrase.map(node => node.cloneNode(true)));
+  }
+  marqueeGroups[1].replaceChildren(...[...first.childNodes].map(node => node.cloneNode(true)));
+  const distance = first.getBoundingClientRect().width;
+  const duration = distance / (innerWidth < 761 ? 44 : 72) * 1000;
+  if (!marqueeAnimation || Math.abs(distance - marqueeDistance) > .25 || Math.abs(duration - marqueeDuration) > 1) {
+    const phase = marqueeAnimation && marqueeDuration ? (Number(marqueeAnimation.currentTime) % marqueeDuration) / marqueeDuration : 0;
+    marqueeAnimation?.cancel();
+    marqueeAnimation = marqueeTrack.animate([
+      { transform: 'translate3d(0,0,0)' },
+      { transform: 'translate3d(-50%,0,0)' },
+    ], { duration, iterations: Infinity, easing: 'linear' });
+    marqueeAnimation.currentTime = phase * duration;
+    marqueeDistance = distance;
+    marqueeDuration = duration;
+  }
+  if (marqueePaused) marqueeAnimation.pause();
+  else if (marqueeAnimation.playState !== 'running') marqueeAnimation.play();
+}
+
+function requestMarqueeSync() {
+  if (marqueeResizeFrame) return;
+  marqueeResizeFrame = requestAnimationFrame(() => {
+    marqueeResizeFrame = 0;
+    syncMarquee();
+  });
+}
 
 function animate(element, keyframes, timing) {
   const animation = element.animate(keyframes, timing);
@@ -83,17 +130,11 @@ function setupMotion({ opening = false } = {}) {
   motionAnimations.forEach(animation => animation.cancel());
   motionAnimations.clear();
   document.documentElement.classList.remove('motion-ready');
-  document.documentElement.classList.toggle('motion-paused', pausedByUser);
-  motionControl.hidden = motionPreference.matches;
-  motionControl.setAttribute('aria-pressed', String(pausedByUser));
-  motionControl.setAttribute('aria-label', pausedByUser ? 'アニメーションを再開' : 'アニメーションを停止');
-  motionControl.querySelector('.motion-control-label').textContent = pausedByUser ? '動きを再開' : '動きを止める';
-  motionControl.querySelector('.motion-control-icon').textContent = pausedByUser ? '▶' : 'Ⅱ';
+  syncMarquee();
   if (motionOff() || !('IntersectionObserver' in window)) {
     revealTargets.forEach(element => element.classList.add('is-inview'));
-    ['--hero-rise', '--symbol-rise', '--symbol-turn', '--symbol-scale', '--hero-piece-gap', '--pointer-x', '--pointer-y'].forEach(name => hero.style.removeProperty(name));
-    ['--company-logo-y', '--company-logo-turn', '--company-logo-fill', '--company-logo-draw', '--company-piece-gap'].forEach(name => company.style.removeProperty(name));
-    marquee.style.removeProperty('--marquee-shift');
+    ['--hero-rise', '--symbol-rise', '--symbol-turn', '--symbol-scale', '--hero-piece-gap'].forEach(name => hero?.style.removeProperty(name));
+    ['--company-logo-y', '--company-logo-turn', '--company-logo-fill', '--company-logo-draw', '--company-piece-gap'].forEach(name => company?.style.removeProperty(name));
     serviceImages.forEach(image => image.style.removeProperty('--image-shift'));
     return;
   }
@@ -117,12 +158,7 @@ function setupMotion({ opening = false } = {}) {
   }, { threshold: 0.12, rootMargin: '0px 0px -20px 0px' });
   observedGroups.forEach((_, anchor) => observer.observe(anchor));
   document.documentElement.classList.add('motion-ready');
-  document.querySelectorAll('.about-text p, .about-principles p').forEach((element, index) => element.style.setProperty('--reveal-delay', `${index * 60}ms`));
-  animate(document.querySelector('.logo-float'), [
-    { transform: 'translateY(0) rotate(-.4deg)' },
-    { transform: 'translateY(-3px) rotate(.8deg)' },
-    { transform: 'translateY(0) rotate(-.4deg)' },
-  ], { duration: 6400, iterations: Infinity, easing: 'ease-in-out' });
+  document.querySelectorAll('.about-text p').forEach((element, index) => element.style.setProperty('--reveal-delay', `${index * 60}ms`));
   if (!opening) return;
   drawBrandMark();
   document.querySelectorAll('.hero-symbol path').forEach((path, index) => {
@@ -152,30 +188,28 @@ function updateScroll() {
   header.classList.toggle('is-scrolled', window.scrollY > 30);
   let current;
   sectionLinks.forEach(link => {
-    if (document.querySelector(link.getAttribute('href')).getBoundingClientRect().top <= innerHeight * .4) current = link;
+    if (document.querySelector(link.getAttribute('href'))?.getBoundingClientRect().top <= innerHeight * .4) current = link;
   });
   sectionLinks.forEach(link => {
     if (link === current) link.setAttribute('aria-current', 'location');
     else link.removeAttribute('aria-current');
   });
   if (motionOff()) return;
-  const progress = Math.max(0, Math.min(window.scrollY / hero.offsetHeight, 1));
-  hero.style.setProperty('--hero-rise', `${-45 * progress}px`);
-  hero.style.setProperty('--symbol-rise', `${55 * progress}px`);
-  hero.style.setProperty('--symbol-turn', `${11 * progress}deg`);
-  hero.style.setProperty('--symbol-scale', `${1 + progress * .1}`);
-  hero.style.setProperty('--hero-piece-gap', `${2.5 * progress}px`);
-  hero.style.setProperty('--pointer-x', `${pointerX * 22}px`);
-  hero.style.setProperty('--pointer-y', `${pointerY * 14}px`);
+  if (hero) {
+    const progress = Math.max(0, Math.min(window.scrollY / hero.offsetHeight, 1));
+    hero.style.setProperty('--hero-rise', `${-45 * progress}px`);
+    hero.style.setProperty('--symbol-rise', `${55 * progress}px`);
+    hero.style.setProperty('--symbol-turn', `${11 * progress}deg`);
+    hero.style.setProperty('--symbol-scale', `${1 + progress * .1}`);
+    hero.style.setProperty('--hero-piece-gap', `${2.5 * progress}px`);
+  }
   const viewport = window.innerHeight;
-  const rect = marquee.getBoundingClientRect();
-  const textProgress = Math.max(0, Math.min((viewport - rect.top) / (viewport + rect.height), 1));
-  marquee.style.setProperty('--marquee-shift', `${50 - 230 * textProgress}px`);
   serviceImages.forEach(image => {
     const bounds = image.getBoundingClientRect();
     const position = Math.max(0, Math.min((viewport - bounds.top) / (viewport + bounds.height), 1));
     image.style.setProperty('--image-shift', `${(position - .5) * (innerWidth < 761 ? 22 : 58)}px`);
   });
+  if (!company) return;
   const companyRect = company.getBoundingClientRect();
   const logoProgress = Math.max(0, Math.min((viewport - companyRect.top) / (viewport * .9 + companyRect.height * .4), 1));
   company.style.setProperty('--company-piece-gap', `${14 * (1 - logoProgress)}px`);
@@ -188,34 +222,22 @@ window.addEventListener('scroll', () => {
   if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
 }, { passive: true });
 motionPreference.addEventListener('change', () => { setupMotion(); updateScroll(); });
-motionControl.addEventListener('click', () => {
-  pausedByUser = !pausedByUser;
-  setupMotion();
-  updateScroll();
-});
-hero.addEventListener('pointermove', event => {
-  if (event.pointerType !== 'mouse' || motionOff()) return;
-  const bounds = hero.getBoundingClientRect();
-  pointerX = (event.clientX - bounds.left) / bounds.width - .5;
-  pointerY = (event.clientY - bounds.top) / bounds.height - .5;
-  if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
-}, { passive: true });
-hero.addEventListener('pointerleave', () => {
-  pointerX = 0; pointerY = 0;
-  if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
-});
 document.querySelector('.brand').addEventListener('pointerenter', drawBrandMark);
 document.querySelector('.brand').addEventListener('focusin', drawBrandMark);
 window.addEventListener('resize', () => {
   if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
+  requestMarqueeSync();
 });
+document.fonts.ready.then(requestMarqueeSync);
+document.fonts.addEventListener('loadingdone', requestMarqueeSync);
 setupMotion({ opening: true });
 updateScroll();
 
-const newsDialog = document.querySelector('.news-dialog');
-document.querySelector('[data-news-open]').addEventListener('click', () => newsDialog.showModal());
-newsDialog.querySelector('.dialog-close').addEventListener('click', () => newsDialog.close());
-newsDialog.addEventListener('click', event => {
-  const rect = newsDialog.getBoundingClientRect();
-  if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) newsDialog.close();
+// The moving typography itself supports click / Enter / Space to pause, without
+// adding a visible control to the composition.
+marquee?.querySelector('.marquee-toggle').addEventListener('click', event => {
+  marqueePaused = !marqueePaused;
+  event.currentTarget.setAttribute('aria-pressed', String(marqueePaused));
+  event.currentTarget.setAttribute('aria-label', marqueePaused ? '流れる文字を再開' : '流れる文字を停止');
+  syncMarquee();
 });
