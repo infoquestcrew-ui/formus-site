@@ -4,9 +4,8 @@
 
 現在の確認用ブランチ: `design-solvvy-refresh`
 
-このブランチではTOPの動画を削除し、スクロール表示の仕組みを先行実装しています。
-Solvvyの画面と実際の動きの確認は通信許可待ちです。比較・調整が終わるまで、Solvvyに合わせた最終版としては扱わないでください。
-リポジトリのPrivate設定は変更していません。
+このブランチではTOPの動画を削除し、Solvvyの実画面を参照して、大きな英字・ロゴ描画・見出しマスク・文字と写真のスクロール連動・浮く固定ヘッダーを実装しています。
+現在のリポジトリはユーザーの設定によりPublicです。確認用ブランチをPagesで公開し、mainは前回の状態を保持します。
 
 ## 1. 今回のファイルを開く
 
@@ -38,7 +37,7 @@ OSやブラウザの「視差効果を減らす」「動きを減らす」が有
 
 ## 3. 確認済みの変更をmainに反映する
 
-Solvvyとの比較・調整とデザイン確認が終わってから行います。
+デザインの確認後、mainに採用する際に行います。
 
 1. 次の比較画面を開く。
    https://github.com/infoquestcrew-ui/formus-site/compare/main...design-solvvy-refresh
@@ -50,23 +49,22 @@ Solvvyとの比較・調整とデザイン確認が終わってから行いま�
 
 ## 4. インターネット上で公開する場合
 
-現在のリポジトリはPrivateです。GitHubの無料プランではPrivateリポジトリにGitHub Pagesを使えません。
-Private設定を維持して無料でサイトを公開したい場合は、Cloudflare PagesなどPrivateリポジトリと連携できる公開先を利用します。
-その場合、コードを非公開に保ててもサイトのURL自体は通常誰でも閲覧できます。
+現在のリポジトリはPublicなので、無料のGitHub Pagesを利用できます。
 
-Cloudflare Pagesを使う場合の基本設定:
+確認用サイトの設定は次のとおりです。
 
-- GitHub接続先: `infoquestcrew-ui/formus-site`
-- Production branch: `main`
-- Framework preset: `None`
-- Build command: 空欄（ビルド不要）
-- Build output directory: `.`（index.htmlがあるリポジトリ直下）
+1. リポジトリの **Settings → Pages** を開く。
+2. Source は **Deploy from a branch**。
+3. Branch は **design-solvvy-refresh**、Folder は **/ (root)**。
+4. 設定を変更した場合は **Save** を押す。
+5. デプロイ完了後、同じ画面の **Visit site** を開く。
 
-GitHub Pagesを利用できるプランの場合は、リポジトリの **Settings → Pages** で次を指定します。
+公開URL: https://infoquestcrew-ui.github.io/formus-site/
 
-- Source: **Deploy from a branch**
-- Branch: **main**
-- Folder: **/ (root)**
+mainへのマージ後に、公開対象もmainに切り替えたい場合は、上記Branchを **main** に変更してSaveを押します。
+確認用ブランチの更新は、そのブランチをPagesの公開対象にしている間だけ自動反映されます。
 
-保存後、デプロイが完了すると同じ画面の **Visit site** から公開URLを確認できます。
+今後リポジトリをPrivateに戻す場合、GitHubの無料プランではPagesを利用できなくなります。
+コードを非公開のまま無料でサイトを公開したい場合は、Cloudflare Pagesなど別の公開先が必要です。
+
 お問い合わせフォームは入力確認のみのデモで、実際のメール送信は行いません。

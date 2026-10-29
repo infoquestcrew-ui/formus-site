@@ -823,5 +823,55 @@
     "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansjp/NotoSansJP%5Bwght%5D.ttf",
     "bytes": 9589900,
     "sha256": "c2f3b4d463500a2ddcd3849cded1fceeb9fd6d1c32e6cbecd568453ba50fc68f"
+  },
+  "assets/vendor/fonts/poppins-400.css": {
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.3.0/latin-400.css",
+    "bytes": 262,
+    "sha256": "c010307b56dd5492d1a95416d7e6e8eb94fa79baf9473ab1cc54cea477c16cad"
+  },
+  "assets/vendor/fonts/files/poppins-latin-400-normal.woff2": {
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.3.0/files/poppins-latin-400-normal.woff2",
+    "bytes": 7884,
+    "sha256": "7d93459d86585bfcdbb7e0376056226adb25821ee54b96236fe2123e9560929f"
+  },
+  "assets/vendor/fonts/files/poppins-latin-400-normal.woff": {
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.3.0/files/poppins-latin-400-normal.woff",
+    "bytes": 10532,
+    "sha256": "6076b418803564833cde2aece96c51b29927ab0a98dfbe727774d1a6c6e6c445"
+  },
+  "assets/vendor/fonts/poppins-500.css": {
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.3.0/latin-500.css",
+    "bytes": 262,
+    "sha256": "36fac0cc1bc865b88a90343d2ae49fabc3916c00d049f7e03074c301303f04dc"
+  },
+  "assets/vendor/fonts/files/poppins-latin-500-normal.woff2": {
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.3.0/files/poppins-latin-500-normal.woff2",
+    "bytes": 7748,
+    "sha256": "cd36de204aca2d5fa263a731f7c20009b5e3d754ba1f1e03c33e93a48f3e7446"
+  },
+  "assets/vendor/fonts/files/poppins-latin-500-normal.woff": {
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.3.0/files/poppins-latin-500-normal.woff",
+    "bytes": 10372,
+    "sha256": "abdc91ec7e4438b1e1d7f808d388614789d69037059b74a9d6166d00eb9b8b04"
+  },
+  "assets/vendor/fonts/poppins-600.css": {
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.3.0/latin-600.css",
+    "bytes": 262,
+    "sha256": "ab2ff8cbfa5c1dcb5ed7bb3812d463bb84e714c041cc9f53cfc0ee4cbd3c3203"
+  },
+  "assets/vendor/fonts/files/poppins-latin-600-normal.woff2": {
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.3.0/files/poppins-latin-600-normal.woff2",
+    "bytes": 8000,
+    "sha256": "f4e80d9dfd374d02989b87a27b5ed4cb78fbb177c27f1478e9a8b0afb7513149"
+  },
+  "assets/vendor/fonts/files/poppins-latin-600-normal.woff": {
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.3.0/files/poppins-latin-600-normal.woff",
+    "bytes": 10600,
+    "sha256": "55fffef7b100460605349fa5215eb7dcd6e558e195d08e43eddc64c4b27d43b3"
+  },
+  "assets/vendor/fonts/POPPINS-LICENSE": {
+    "url": "https://cdn.jsdelivr.net/npm/@fontsource/poppins@5.3.0/LICENSE",
+    "bytes": 6175,
+    "sha256": "5c4a92c8f8ce0ab211f4c72889d82383c9644546115d9ba39a4f2d5b8f37014b"
   }
 }

@@ -39,13 +39,16 @@ matchMedia('(min-width: 761px)').addEventListener('change', event => {
 const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
 const header = document.querySelector('.site-header');
 const hero = document.querySelector('.hero');
-const revealTargets = [...document.querySelectorAll('.section-topline, .display-heading, .about-heading-ja, .about-image, .about-text p, .section-heading-row > p, .service-row, .company-table > div, .contact-grid p, .contact-action')];
+const revealTargets = [...document.querySelectorAll('.section-topline, .display-heading, .about-heading-ja, .about-image, .about-text p, .section-heading-row > p, .service-row, .service-image, .company-table > div, .contact-grid p, .contact-action')];
+const marquee = document.querySelector('.tagline-marquee');
+const serviceImages = [...document.querySelectorAll('.service-image')];
 let observer;
 let scrollFrame = 0;
 const entranceAnimations = [];
 
 // The page is fully visible without JavaScript or when motion is reduced.
-// Motion timing is isolated here for adjustment after reference-site review.
+// Independently implemented after inspecting Solvvy's title masks, logo drawing,
+// scroll-linked typography, floating navigation and image parallax.
 function setupMotion() {
   observer?.disconnect();
   entranceAnimations.forEach(animation => animation.cancel());
@@ -53,28 +56,50 @@ function setupMotion() {
   document.documentElement.classList.remove('motion-ready');
   if (motionPreference.matches || !('IntersectionObserver' in window)) {
     revealTargets.forEach(element => element.classList.add('is-inview'));
-    hero.style.removeProperty('--photo-offset');
-    hero.style.removeProperty('--stamp-turn');
+    hero.style.removeProperty('--hero-rise');
+    hero.style.removeProperty('--symbol-rise');
+    marquee.style.removeProperty('--marquee-shift');
+    serviceImages.forEach(image => image.style.removeProperty('--image-shift'));
     return;
   }
+  // A fully masked node has no intersection area. Observe its unmasked
+  // container so heading/image wipes can actually start on every browser.
+  const observedGroups = new Map();
+  revealTargets.forEach(element => {
+    element.dataset.reveal = '';
+    const anchor = element.matches('.display-heading, .service-image') ? element.parentElement : element;
+    const group = observedGroups.get(anchor) || [];
+    group.push(element);
+    observedGroups.set(anchor, group);
+  });
   observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('is-inview');
+        observedGroups.get(entry.target).forEach(element => element.classList.add('is-inview'));
         observer.unobserve(entry.target);
       }
     });
   }, { threshold: 0.12, rootMargin: '0px 0px -20px 0px' });
-  revealTargets.forEach(element => {
-    element.dataset.reveal = '';
-    observer.observe(element);
-  });
+  observedGroups.forEach((_, anchor) => observer.observe(anchor));
   document.documentElement.classList.add('motion-ready');
-  document.querySelectorAll('.hero-copy > *, .hero-visual').forEach((element, index) => {
+  document.querySelectorAll('.about-text p').forEach((element, index) => element.style.setProperty('--reveal-delay', `${index * 60}ms`));
+  document.querySelectorAll('.hero-symbol path').forEach((path, index) => {
+    entranceAnimations.push(path.animate([
+      { strokeDasharray: '1', strokeDashoffset: '1', fillOpacity: 0 },
+      { strokeDasharray: '1', strokeDashoffset: '0', fillOpacity: 1 },
+    ], { duration: 1500, delay: index * 120, easing: 'cubic-bezier(.45,0,.2,1)', fill: 'backwards' }));
+  });
+  document.querySelectorAll('.hero-word').forEach((word, index) => {
+    entranceAnimations.push(word.animate([
+      { clipPath: 'inset(0 100% 0 0)', backgroundPosition: '100% 50%' },
+      { clipPath: 'inset(0 0 0 0)', backgroundPosition: '0% 50%' },
+    ], { duration: 1600, delay: 250 + index * 180, easing: 'cubic-bezier(.65,0,.25,1)', fill: 'backwards' }));
+  });
+  document.querySelectorAll('.hero-copy > .eyebrow, .hero-caption, .hero-copy > .text-link').forEach((element, index) => {
     entranceAnimations.push(element.animate([
-      { opacity: 0, transform: 'translateY(24px)', clipPath: 'inset(0 0 100% 0)' },
-      { opacity: 1, transform: 'translateY(0)', clipPath: 'inset(0 0 0 0)' },
-    ], { duration: 950, delay: index * 95, easing: 'cubic-bezier(.2,.65,.25,1)', fill: 'backwards' }));
+      { opacity: 0, transform: 'translateY(18px)' },
+      { opacity: 1, transform: 'translateY(0)' },
+    ], { duration: 900, delay: 400 + index * 250, easing: 'cubic-bezier(.2,.65,.25,1)', fill: 'backwards' }));
   });
 }
 
@@ -83,13 +108,25 @@ function updateScroll() {
   header.classList.toggle('is-scrolled', window.scrollY > 30);
   if (motionPreference.matches) return;
   const progress = Math.max(0, Math.min(window.scrollY / hero.offsetHeight, 1));
-  hero.style.setProperty('--photo-offset', `${-25 * progress}px`);
-  hero.style.setProperty('--stamp-turn', `${progress * 28}deg`);
+  hero.style.setProperty('--hero-rise', `${-45 * progress}px`);
+  hero.style.setProperty('--symbol-rise', `${55 * progress}px`);
+  const viewport = window.innerHeight;
+  const rect = marquee.getBoundingClientRect();
+  const textProgress = Math.max(0, Math.min((viewport - rect.top) / (viewport + rect.height), 1));
+  marquee.style.setProperty('--marquee-shift', `${50 - 230 * textProgress}px`);
+  serviceImages.forEach(image => {
+    const bounds = image.getBoundingClientRect();
+    const position = Math.max(0, Math.min((viewport - bounds.top) / (viewport + bounds.height), 1));
+    image.style.setProperty('--image-shift', `${(position - .5) * (innerWidth < 761 ? 22 : 58)}px`);
+  });
 }
 window.addEventListener('scroll', () => {
   if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
 }, { passive: true });
-motionPreference.addEventListener('change', setupMotion);
+motionPreference.addEventListener('change', () => { setupMotion(); updateScroll(); });
+window.addEventListener('resize', () => {
+  if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
+});
 setupMotion();
 updateScroll();
 

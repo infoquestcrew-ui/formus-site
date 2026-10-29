@@ -58,6 +58,10 @@ async def main():
             await page.evaluate('Promise.all([...document.images].map(img => img.decode()))')
             if await page.locator('.hero').count():
                 await page.evaluate('Promise.all(document.getAnimations().filter(a => a.playState === "running").map(a => a.finished.catch(() => {})))')
+                for target in await page.locator('.display-heading, .service-image').all():
+                    await expect(target).to_have_css(
+                        'clip-path', re.compile(r'^(?:none|inset\(0(?:px|%)?(?: 0(?:px|%)?){0,3}\))$')
+                    )
             assert await page.evaluate(
                 'document.documentElement.scrollWidth <= innerWidth'
             ), f'Horizontal overflow: {path}'
@@ -73,7 +77,8 @@ async def main():
 
         await visit('/')
         assert await page.locator('video, .video-toggle').count() == 0
-        assert await page.locator('.hero-frame img').evaluate('(image) => image.complete && image.naturalWidth > 0')
+        assert await page.locator('.hero-symbol path').count() == 2
+        assert 'Leading change.' in await page.locator('.hero-en').inner_text()
         await page.goto(BASE + '/', wait_until='networkidle')
         service = page.locator('.service-row').first
         await expect(service).to_have_css('opacity', '0')
@@ -151,7 +156,7 @@ async def main():
         result = {
             'status': 'passed', 'pages': 3, 'viewports': [1440, 390],
             'video': 'removed; no video elements or media requests',
-            'motion': 'scroll reveal and sticky header passed; reduced motion and no-JS content remain visible',
+            'motion': 'title masks, scroll reveal and floating header passed; reduced motion and no-JS content remain visible',
             'services': 'two service introductions; detail link navigated',
             'news': 'dialog opened and closed with Escape',
             'menu': 'pointer, keyboard, navigation, Escape passed',
