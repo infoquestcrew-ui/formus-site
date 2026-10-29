@@ -51,6 +51,8 @@ OSやブラウザの「視差効果を減らす」「動きを減らす」が有
 
 現在のリポジトリはPublicなので、無料のGitHub Pagesを利用できます。
 
+現在のGitHub連携アプリでは、Pagesの初回作成APIが `Resource not accessible by integration` で拒否されています。最初の公開設定は、リポジトリ所有者がGitHubの画面から行ってください。サイトのコードは反映済みです。
+
 確認用サイトの設定は次のとおりです。
 
 1. リポジトリの **Settings → Pages** を開く。

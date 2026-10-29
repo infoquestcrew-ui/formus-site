@@ -53,6 +53,7 @@ GitHub上でも確認できる画像を `designs/` に保存しています。
 - [TOP冒頭のデザイン](designs/formus-top-hero.jpg)
 - [PC：TOP全体](designs/formus-top-desktop.jpg)
 - [スマートフォン：TOP全体](designs/formus-top-mobile.jpg)
+- [実際のブラウザで収録した動きのプレビュー](designs/formus-motion-preview.gif)
 
 ## 依存素材
 
