@@ -24,6 +24,11 @@ python3 -m http.server 4174 --bind 127.0.0.1
 - `/contact.html` — お問い合わせフォームと個人情報の取り扱いモーダル。
 - PC・スマートフォンのレイアウト、キーボード対応メニュー、アンカー移動、ロゴ描画、見出しのマスク表示、スクロール連動の文字・写真移動、ヘッダー追従、お知らせダイアログ、入力必須チェック。
 
+Aboutは見出し・導入文・大きな写真を横並びにし、事業への関わりと今後の姿勢を下段の2列に整理しています。
+本文・写真を拡大し、サービス・会社概要・お問い合わせも上下の余白と文字サイズを調整しています。
+ロゴは初回の描画とパーツの組み立て、緩やかな浮遊、マウス追従、ヘッダーロゴのホバー再描画、会社概要のスクロール連動に対応しています。
+TOPの「動きを止める」で全アニメーションを停止・再開できます。OSの「動きを減らす」も尊重します。
+
 画像、CSS、JavaScript、フォントはローカルに保存しています。TOPの動画要素・再生操作・動画ファイルを削除し、動画のダウンロードも行いません。
 サイトを開く際の外部 CDN・Google Fonts・アクセス解析への通信はありません。
 `asset-sources.json` に取得元・取得時のサイズ・SHA-256 を記録しています。
@@ -42,6 +47,12 @@ python3 tools/check_site.py
 ```
 
 スクリーンショットと確認結果は Git の追跡対象外の `artifacts/` に出力します。
+
+確認用画像と動きのGIFは、サーバー起動後に次で再生成できます。GIFの生成にはffmpegが必要です。
+
+```bash
+python3 tools/capture_preview.py --motion
+```
 
 TOPデザイン確認用の画像は `artifacts/formus-top-hero.jpg`、`artifacts/formus-top-desktop.jpg`、`artifacts/formus-top-mobile.jpg` です。
 TOPの独自スタイルと処理は `assets/css/home-v2.css` と `assets/js/home.js` に分離しています。

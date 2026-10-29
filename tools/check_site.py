@@ -57,7 +57,7 @@ async def main():
             await page.evaluate('window.scrollTo({top: 0, behavior: "instant"})')
             await page.evaluate('Promise.all([...document.images].map(img => img.decode()))')
             if await page.locator('.hero').count():
-                await page.evaluate('Promise.all(document.getAnimations().filter(a => a.playState === "running").map(a => a.finished.catch(() => {})))')
+                await page.evaluate('Promise.all(document.getAnimations().filter(a => a.playState === "running" && a.effect.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => {})))')
                 for target in await page.locator('.display-heading, .service-image').all():
                     await expect(target).to_have_css(
                         'clip-path', re.compile(r'^(?:none|inset\(0(?:px|%)?(?: 0(?:px|%)?){0,3}\))$')
@@ -78,7 +78,24 @@ async def main():
         await visit('/')
         assert await page.locator('video, .video-toggle').count() == 0
         assert await page.locator('.hero-symbol path').count() == 2
+        assert await page.locator('.brand-piece').count() == 2
         assert 'Leading change.' in await page.locator('.hero-en').inner_text()
+        # Visitors can stop all persistent motion without hiding page content.
+        control = page.locator('.motion-control')
+        await control.click()
+        await expect(control).to_have_attribute('aria-pressed', 'true')
+        assert await page.evaluate('document.getAnimations().length') == 0
+        await expect(page.locator('.about-principles p').first).to_have_css('opacity', '1')
+        await control.click()
+        await expect(control).to_have_attribute('aria-pressed', 'false')
+        assert await page.locator('.logo-float').evaluate('(e) => e.getAnimations().some(a => a.playState === "running")')
+        await page.locator('.brand').hover()
+        assert await page.locator('.brand-piece').first.evaluate('(e) => e.getAnimations().length > 0')
+        before_logo = await page.locator('.company-piece').first.evaluate('(e) => getComputedStyle(e).transform')
+        await page.locator('.company').scroll_into_view_if_needed()
+        await page.wait_for_timeout(200)
+        after_logo = await page.locator('.company-piece').first.evaluate('(e) => getComputedStyle(e).transform')
+        assert before_logo != after_logo, 'Company logo did not respond to scrolling'
         await page.goto(BASE + '/', wait_until='networkidle')
         service = page.locator('.service-row').first
         await expect(service).to_have_css('opacity', '0')
@@ -156,7 +173,7 @@ async def main():
         result = {
             'status': 'passed', 'pages': 3, 'viewports': [1440, 390],
             'video': 'removed; no video elements or media requests',
-            'motion': 'title masks, scroll reveal and floating header passed; reduced motion and no-JS content remain visible',
+            'motion': 'logo drawing, hover replay, idle movement, scroll assembly and pause/resume passed; reduced motion and no-JS content remain visible',
             'services': 'two service introductions; detail link navigated',
             'news': 'dialog opened and closed with Escape',
             'menu': 'pointer, keyboard, navigation, Escape passed',
