@@ -44,10 +44,16 @@ async def main():
         async def visit(path):
             response = await page.goto(BASE + path, wait_until='networkidle')
             assert response.status == 200, path
-            assert await page.title() == '株式会社FORMUS', path
+            assert (await page.title()).startswith('株式会社FORMUS'), path
             await page.evaluate('document.fonts.ready')
             if await page.locator('.load_fist').count():
                 await page.locator('.load_fist').wait_for(state='hidden')
+            # Load every lazy image before checking/capturing the entire page.
+            for y in range(0, await page.evaluate('document.body.scrollHeight'), 700):
+                await page.evaluate('(y) => window.scrollTo({top: y, behavior: "instant"})', y)
+                await page.wait_for_timeout(60)
+            await page.evaluate('window.scrollTo({top: 0, behavior: "instant"})')
+            await page.evaluate('Promise.all([...document.images].map(img => img.decode()))')
             assert await page.evaluate(
                 'document.documentElement.scrollWidth <= innerWidth'
             ), f'Horizontal overflow: {path}'
@@ -66,15 +72,16 @@ async def main():
         await expect(video).to_have_js_property('readyState', 4)
         assert await video.evaluate('(video) => video.videoWidth > 0')
         assert await video.evaluate('(video) => video.muted && video.loop')
-        slider = page.locator('.mySwiper')
-        before = await slider.evaluate('(element) => element.swiper.translate')
-        await page.locator('.swiper-button-next').click()
-        await expect(page.locator('.swiper-button-next')).to_have_class(
-            re.compile(r'.*\bswiper-button-disabled\b.*')
-        )
-        assert await slider.evaluate('(element) => element.swiper.translate') < before
-        assert await slider.evaluate('(element) => element.swiper.isEnd')
-        await page.locator('.swiper-slide').nth(1).locator('.btn a').click()
+        await page.locator('.video-toggle').click()
+        await expect(video).to_have_js_property('paused', True)
+        await page.locator('.video-toggle').click()
+        await expect(video).to_have_js_property('paused', False)
+        await page.locator('[data-news-open]').click()
+        await expect(page.locator('.news-dialog')).to_be_visible()
+        await page.keyboard.press('Escape')
+        await expect(page.locator('.news-dialog')).not_to_be_visible()
+        assert await page.locator('.service-row').count() == 2
+        await page.locator('.service-row').nth(1).locator('.text-link').click()
         await page.wait_for_url('**/service/#section2')
         assert await page.locator('#section2').is_visible()
 
@@ -84,17 +91,20 @@ async def main():
             await visit(path)
             await page.screenshot(path=str(ARTIFACTS / f'{name}-mobile.png'),
                                   full_page=True)
-            menu = page.locator('.l-header .menu')
+            home = await page.locator('.menu-toggle').count() > 0
+            menu = page.locator('.menu-toggle' if home else '.l-header .menu')
             await menu.focus()
             await page.keyboard.press('Enter')
-            assert await menu.get_attribute('aria-expanded') == 'true'
+            await expect(menu).to_have_attribute('aria-expanded', 'true')
+            if home:
+                await page.keyboard.press('Tab')
+                await expect(page.locator('#main-nav a').first).to_be_focused()
             await page.keyboard.press('Escape')
-            assert await menu.get_attribute('aria-expanded') == 'false'
+            await expect(menu).to_have_attribute('aria-expanded', 'false')
             await menu.click()
-            await page.locator('.l-header nav a').first.click()
-            await page.wait_for_url('**/index.html#about_blk')
-            assert 'open' not in (await page.locator('.l-header .menu')
-                                 .get_attribute('class')).split()
+            await page.locator('#main-nav a' if home else '.l-header nav a').first.click()
+            await page.wait_for_url(re.compile(r'/(?:index\.html)?#about_blk$'))
+            await expect(page.locator('.menu-toggle')).to_have_attribute('aria-expanded', 'false')
 
         await visit('/contact.html')
         await page.locator('a.policy-link').click()
@@ -126,7 +136,9 @@ async def main():
 
         result = {
             'status': 'passed', 'pages': 3, 'viewports': [1440, 390],
-            'video': 'loaded', 'slider': 'navigated to service detail',
+            'video': 'loaded, paused and resumed',
+            'services': 'two service introductions; detail link navigated',
+            'news': 'dialog opened and closed with Escape',
             'menu': 'pointer, keyboard, navigation, Escape passed',
             'privacy_modal': 'open and Escape close passed',
             'form': 'invalid blocked; valid input confirmed locally',

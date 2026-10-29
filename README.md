@@ -1,6 +1,8 @@
-# FORMUS サイト再現
+# FORMUS Webサイト
 
-https://formus.jp/ を参照して再現した、独立した静的サイトです。
+https://formus.jp/ の構成・文章・ロゴ・画像を使用した静的サイトです。
+TOPページはミントグリーン、深いグリーン、オフホワイトを使った新しいデザインの初稿です。
+サービス詳細とお問い合わせの下層ページは、前回制作した状態を保持しています。
 既存の `infoquestcrew-ui` リポジトリは変更していません。
 
 ## 起動
@@ -17,10 +19,10 @@ python3 -m http.server 4174 --bind 127.0.0.1
 
 ## ページと機能
 
-- `/` — 動画付きのトップページ、MISSION、サービススライダー、会社概要。
+- `/` — 動画付きの新TOPページ、NEWS、私たちについて、2つの事業紹介、会社概要、お問い合わせ。
 - `/service/` — アウトソーシング事業とリクルーティング事業。
 - `/contact.html` — お問い合わせフォームと個人情報の取り扱いモーダル。
-- PC・スマートフォンのレイアウト、モバイルメニュー、アンカー移動、入力必須チェック。
+- PC・スマートフォンのレイアウト、キーボード対応メニュー、アンカー移動、動画再生・停止、お知らせダイアログ、入力必須チェック。
 
 画像、動画、CSS、JavaScript、フォントはローカルに保存しています。
 サイトを開く際の外部 CDN・Google Fonts・アクセス解析への通信はありません。
@@ -40,6 +42,17 @@ python3 tools/check_site.py
 ```
 
 スクリーンショットと確認結果は Git の追跡対象外の `artifacts/` に出力します。
+
+TOPデザイン確認用の画像は `artifacts/formus-top-hero.jpg`、`artifacts/formus-top-desktop.jpg`、`artifacts/formus-top-mobile.jpg` です。
+TOPの独自スタイルと処理は `assets/css/home.css` と `assets/js/home.js` に分離しています。
+参考サイトの CSS や JavaScript は使用していません。
+
+GitHub上でも確認できる画像を `designs/` に保存しています。
+参考指定の `tokyotechnology.jp` と `brain-forest.net` は制作時点で通信許可待ちのため、直接比較を行う前の初稿です。
+
+- [TOP冒頭のデザイン](designs/formus-top-hero.jpg)
+- [PC：TOP全体](designs/formus-top-desktop.jpg)
+- [スマートフォン：TOP全体](designs/formus-top-mobile.jpg)
 
 ## 依存素材
 
