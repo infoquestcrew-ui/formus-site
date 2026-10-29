@@ -36,7 +36,7 @@ Aboutはすべての段落を一続きの本文にまとめ、大きな写真と
 `asset-sources.json` に取得元・取得時のサイズ・SHA-256 を記録しています。
 フォントの CSS はフォント名を元サイトに合わせて変更しています。
 
-フォームはデモ動作です。入力内容は保存・外部送信されず、確認ボタンは入力確認の結果を表示します。
+GitHub Pagesの確認用フォームはデモ動作です。入力内容は保存・外部送信されず、確認ボタンは入力確認の結果を表示します。
 事業紹介の本文・フォーム項目・個人情報の取り扱いの全10条を保持しています。個人情報の表示はブラウザ標準のダイアログを使い、Escapeや閉じるボタンで元の入力画面へ戻れます。
 元サイトのフォーム送信先と Google Analytics は除去しています。
 検索への登録を避けるため、`noindex` と `robots.txt` を設定しています。
@@ -101,3 +101,23 @@ python3 tools/package_site.py
 デプロイが終わったら、同じ画面の Visit site から公開 URL を開けます。
 
 公開用アーカイブの確認には、`artifacts/pages-preview` を別ポートで配信し、`SITE_BASE_URL` に `/formus-site` を含めて `tools/check_site.py` を実行できます。
+
+## Xserverでformus.jpを差し替える場合
+
+操作手順は [Xserverへの設置手順](docs/XSERVER_SETUP.md) にまとめています。公開先は既存の `formus.jp/public_html` です。DNSやネームサーバーは変更しません。
+
+Xserver用は次の2種類です。
+
+- [確認用ZIP](downloads/formus-xserver-preview.zip) — `renewal-preview/` へ設置し、現サイトを残して確認。
+- [本番用ZIP](downloads/formus-xserver-public.zip) — 確認後、`public_html` 直下へ設置。
+
+どちらもXserverのPHPで `info@formus.jp` にメールを送信します。送信元も同じアドレスで、入力者のアドレスをReply-Toに設定します。メールパスワード・SMTP認証情報・データベースは不要です。自動返信は行いません。
+
+本番用では `noindex` を解除し、canonical・robots.txt・sitemap.xmlをFORMUSの本番URLに設定します。既存の `.htaccess` やSSL設定は含めず、上書きしません。GitHub Pagesで配信する確認用のHTML・フォームは変更しません。
+
+```bash
+python3 tools/package_xserver.py
+PHP_BIN=php python3 tools/check_xserver.py
+```
+
+PHP 8.3以上のサポート中のバージョンを使用してください。検証ではメールをローカルで捕捉して外部へ送信しません。Xserverでの実際の受信は、設置後に確認する必要があります。

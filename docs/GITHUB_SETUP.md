@@ -75,3 +75,5 @@ mainへのマージ後に、公開対象もmainに切り替えたい場合は、
 コードを非公開のまま無料でサイトを公開したい場合は、Cloudflare Pagesなど別の公開先が必要です。
 
 お問い合わせフォームは入力確認のみのデモで、実際のメール送信は行いません。
+
+現在のFORMUSのXserverへ設置する場合は、[Xserverへの設置手順](XSERVER_SETUP.md) と専用ZIPを使用してください。専用ZIPはPHPで `info@formus.jp` に送信するフォームを含みます。
