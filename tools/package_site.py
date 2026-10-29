@@ -11,6 +11,10 @@ ARCHIVE = ROOT / 'artifacts' / 'formus-site-upload.zip'
 
 
 def main():
+    # Recreate this generated directory so removed source files cannot survive
+    # in an exported site from a previous run.
+    if OUTPUT.exists():
+        shutil.rmtree(OUTPUT)
     OUTPUT.mkdir(parents=True, exist_ok=True)
     sources = [ROOT / name for name in ('index.html', 'contact.html', 'robots.txt', '.nojekyll')]
     sources += [path for directory in ('assets', 'service')

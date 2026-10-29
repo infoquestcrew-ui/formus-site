@@ -19,12 +19,12 @@ python3 -m http.server 4174 --bind 127.0.0.1
 
 ## ページと機能
 
-- `/` — 動画付きの新TOPページ、NEWS、私たちについて、2つの事業紹介、会社概要、お問い合わせ。
+- `/` — 静止画像を使ったTOPページ、NEWS、私たちについて、2つの事業紹介、会社概要、お問い合わせ。
 - `/service/` — アウトソーシング事業とリクルーティング事業。
 - `/contact.html` — お問い合わせフォームと個人情報の取り扱いモーダル。
-- PC・スマートフォンのレイアウト、キーボード対応メニュー、アンカー移動、動画再生・停止、お知らせダイアログ、入力必須チェック。
+- PC・スマートフォンのレイアウト、キーボード対応メニュー、アンカー移動、スクロール表示、ヘッダー追従、お知らせダイアログ、入力必須チェック。
 
-画像、動画、CSS、JavaScript、フォントはローカルに保存しています。
+画像、CSS、JavaScript、フォントはローカルに保存しています。TOPの動画要素・再生操作・動画ファイルを削除し、動画のダウンロードも行いません。
 サイトを開く際の外部 CDN・Google Fonts・アクセス解析への通信はありません。
 `asset-sources.json` に取得元・取得時のサイズ・SHA-256 を記録しています。
 フォントの CSS はフォント名を元サイトに合わせて変更しています。
@@ -48,7 +48,7 @@ TOPの独自スタイルと処理は `assets/css/home.css` と `assets/js/home.j
 参考サイトの CSS や JavaScript は使用していません。
 
 GitHub上でも確認できる画像を `designs/` に保存しています。
-参考指定の `tokyotechnology.jp` と `brain-forest.net` は制作時点で通信許可待ちのため、直接比較を行う前の初稿です。
+参考指定の `solvvy.co.jp` は現在の実行環境で通信許可待ちです。スクロール演出は比較・調整前の先行実装で、参考サイトの動きを再現済みという状態ではありません。
 
 - [TOP冒頭のデザイン](designs/formus-top-hero.jpg)
 - [PC：TOP全体](designs/formus-top-desktop.jpg)
@@ -56,12 +56,15 @@ GitHub上でも確認できる画像を `designs/` に保存しています。
 
 ## 依存素材
 
-サイトの文章、ロゴ、画像、動画、元のスタイルは参照サイト由来です。
+サイトの文章、ロゴ、画像、下層ページの元のスタイルはFORMUSの現行サイト由来です。
 外部ライブラリは Swiper 8.4.7、Modaal 0.4.4、および参照サイトの jQuery 1.11.1。
 フォントは Noto Sans JP（Fontsource 5.3.1）と Antonio（Fontsource 5.3.0）です。
 同梱のライブラリ・フォントのライセンスは `assets/vendor/` にあります。
 
 GitHub リポジトリ: https://github.com/infoquestcrew-ui/formus-site
+
+現在の確認用ブランチは `design-solvvy-refresh` です。`main` にはまだマージしていません。
+GitHubでの確認・反映・公開の操作は [GitHub設定手順](docs/GITHUB_SETUP.md) を参照してください。
 
 ## GitHub Pages への公開
 

@@ -23,13 +23,15 @@ async def main():
             args=['--no-sandbox'],
         )
         page = await browser.new_page(viewport={'width': 1440, 'height': 1000})
-        errors, failed, external, posts = [], [], [], []
+        errors, failed, external, posts, media_requests = [], [], [], [], []
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.on('response', lambda response: failed.append(response.url)
                 if response.status >= 400 else None)
 
         async def intercept(route):
             request = route.request
+            if request.resource_type == 'media' or urlsplit(request.url).path.endswith(('.mp4', '.webm', '.mov')):
+                media_requests.append(request.url)
             if request.method != 'GET':
                 posts.append(request.url)
                 await route.abort()
@@ -54,6 +56,8 @@ async def main():
                 await page.wait_for_timeout(60)
             await page.evaluate('window.scrollTo({top: 0, behavior: "instant"})')
             await page.evaluate('Promise.all([...document.images].map(img => img.decode()))')
+            if await page.locator('.hero').count():
+                await page.evaluate('Promise.all(document.getAnimations().filter(a => a.playState === "running").map(a => a.finished.catch(() => {})))')
             assert await page.evaluate(
                 'document.documentElement.scrollWidth <= innerWidth'
             ), f'Horizontal overflow: {path}'
@@ -68,14 +72,14 @@ async def main():
                                   full_page=True)
 
         await visit('/')
-        video = page.locator('video')
-        await expect(video).to_have_js_property('readyState', 4)
-        assert await video.evaluate('(video) => video.videoWidth > 0')
-        assert await video.evaluate('(video) => video.muted && video.loop')
-        await page.locator('.video-toggle').click()
-        await expect(video).to_have_js_property('paused', True)
-        await page.locator('.video-toggle').click()
-        await expect(video).to_have_js_property('paused', False)
+        assert await page.locator('video, .video-toggle').count() == 0
+        assert await page.locator('.hero-frame img').evaluate('(image) => image.complete && image.naturalWidth > 0')
+        await page.goto(BASE + '/', wait_until='networkidle')
+        service = page.locator('.service-row').first
+        await expect(service).to_have_css('opacity', '0')
+        await service.scroll_into_view_if_needed()
+        await expect(service).to_have_css('opacity', '1')
+        await expect(page.locator('.site-header')).to_have_class(re.compile(r'.*\bis-scrolled\b.*'))
         await page.locator('[data-news-open]').click()
         await expect(page.locator('.news-dialog')).to_be_visible()
         await page.keyboard.press('Escape')
@@ -129,14 +133,25 @@ async def main():
         await form.locator('button[type="submit"]').click()
         assert '送信されていません' in await page.locator('#form-status').inner_text()
         assert await form.evaluate('(form) => form.checkValidity()')
+        await page.emulate_media(reduced_motion='reduce')
+        await page.goto(BASE + '/', wait_until='networkidle')
+        await expect(page.locator('.service-row').first).to_have_css('opacity', '1')
+        assert await page.evaluate('document.getAnimations().length') == 0
+        assert await page.locator('video').count() == 0
+        no_js = await browser.new_page(java_script_enabled=False)
+        await no_js.goto(BASE + '/', wait_until='networkidle')
+        await expect(no_js.locator('.service-row').first).to_have_css('opacity', '1')
+        await no_js.close()
         assert not errors, f'JavaScript errors: {errors}'
         assert not failed, f'HTTP errors: {failed}'
         assert not external, f'External requests: {external}'
         assert not posts, f'Unexpected form delivery: {posts}'
+        assert not media_requests, f'Unexpected video downloads: {media_requests}'
 
         result = {
             'status': 'passed', 'pages': 3, 'viewports': [1440, 390],
-            'video': 'loaded, paused and resumed',
+            'video': 'removed; no video elements or media requests',
+            'motion': 'scroll reveal and sticky header passed; reduced motion and no-JS content remain visible',
             'services': 'two service introductions; detail link navigated',
             'news': 'dialog opened and closed with Escape',
             'menu': 'pointer, keyboard, navigation, Escape passed',

@@ -104,11 +104,6 @@
     "bytes": 95785,
     "sha256": "24262baafef17092927c3dafe764aaa52a2a371b83ed2249cca7e414df99fac1"
   },
-  "assets/img/main/video.mp4": {
-    "url": "https://formus.jp/assets/img/main/video.mp4",
-    "bytes": 10927472,
-    "sha256": "b11d0a1a216826e4982c0eab20f24d13a9b98ae5b695b2f38995e56727ecf63f"
-  },
   "assets/img/document/pdf_icon.webp": {
     "url": "https://formus.jp/assets/img/document/pdf_icon.webp",
     "bytes": 236,
